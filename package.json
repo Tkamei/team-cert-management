@@ -12,7 +12,6 @@
     "dev:client": "cd client && npm run dev",
     "build:server": "tsc",
     "build:client": "cd client && npm run build",
-    "build:all": "npm run build:server && npm run build:client",
     "install:all": "npm install && cd client && npm install",
     "preview:client": "cd client && npm run preview",
     "test": "jest",
