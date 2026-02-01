@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: team-cert-management
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && cd client && npm install && npm run build && cd .. && npm run build:server
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATA_DIR
+        value: /opt/render/project/data
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONTEND_BUILD_PATH
+        value: ./client/build
+      - key: LOG_LEVEL
+        value: info
+      - key: DEMO_MODE
+        value: true
+    disk:
+      name: data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
+    healthCheckPath: /health
+    autoDeploy: true

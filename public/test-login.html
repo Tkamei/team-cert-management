@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログインテスト</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>ログインテスト</h2>
+    <form id="testLoginForm">
+        <div class="form-group">
+            <label>メールアドレス</label>
+            <input type="email" id="email" value="admin@demo.com" required>
+        </div>
+        <div class="form-group">
+            <label>パスワード</label>
+            <input type="password" id="password" value="admin123" required>
+        </div>
+        <button type="submit">ログイン</button>
+    </form>
+    <div id="message"></div>
+    <div id="response" style="margin-top: 20px; padding: 10px; background: #f5f5f5; white-space: pre-wrap;"></div>
+
+    <script>
+        console.log('Script loaded');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded');
+            
+            const form = document.getElementById('testLoginForm');
+            console.log('Form element:', form);
+            
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    console.log('Form submitted');
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const messageDiv = document.getElementById('message');
+                    const responseDiv = document.getElementById('response');
+                    
+                    messageDiv.textContent = 'ログイン中...';
+                    messageDiv.className = '';
+                    
+                    try {
+                        console.log('Sending request...');
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ email, password })
+                        });
+                        
+                        console.log('Response status:', response.status);
+                        const data = await response.json();
+                        console.log('Response data:', data);
+                        
+                        responseDiv.textContent = JSON.stringify(data, null, 2);
+                        
+                        if (response.ok && data.success) {
+                            messageDiv.textContent = 'ログイン成功！';
+                            messageDiv.className = 'success';
+                        } else {
+                            messageDiv.textContent = 'ログイン失敗: ' + (data.error?.message || 'Unknown error');
+                            messageDiv.className = 'error';
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        messageDiv.textContent = 'エラー: ' + error.message;
+                        messageDiv.className = 'error';
+                        responseDiv.textContent = error.stack;
+                    }
+                });
+            } else {
+                console.error('Form not found!');
+            }
+        });
+    </script>
+</body>
+</html>

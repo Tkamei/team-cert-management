@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チーム資格管理システム - デモ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .navbar {
+            background-color: #343a40;
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        .navbar h1 {
+            text-align: center;
+            margin: 0;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .login-section {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .api-section {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .data-section {
+            background-color: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <h1>チーム資格管理システム - API デモ</h1>
+        </div>
+        
+        <div class="grid">
+            <!-- ログインセクション -->
+            <div class="card login-section">
+                <h2>🔐 認証</h2>
+                <div class="form-group">
+                    <label class="form-label">メールアドレス</label>
+                    <input type="email" id="email" class="form-control" value="admin@demo.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">パスワード</label>
+                    <input type="password" id="password" class="form-control" value="admin123">
+                </div>
+                <button class="btn btn-primary" onclick="login()">ログイン</button>
+                <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
+                <button class="btn btn-secondary" onclick="checkSession()">セッション確認</button>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <small>
+                        <strong>デモアカウント:</strong><br>
+                        管理者: admin@demo.com / admin123<br>
+                        メンバー: member@demo.com / member123
+                    </small>
+                </div>
+            </div>
+            
+            <!-- APIテストセクション -->
+            <div class="card api-section">
+                <h2>🔧 API テスト</h2>
+                <button class="btn btn-primary" onclick="getCertifications()">資格一覧取得</button>
+                <button class="btn btn-primary" onclick="getUsers()">ユーザー一覧取得</button>
+                <button class="btn btn-primary" onclick="getMyPlans()">自分の学習計画</button>
+                <button class="btn btn-primary" onclick="getMyAchievements()">自分の取得履歴</button>
+                <button class="btn btn-primary" onclick="getNotifications()">通知一覧</button>
+                <button class="btn btn-secondary" onclick="healthCheck()">ヘルスチェック</button>
+            </div>
+            
+            <!-- データ表示セクション -->
+            <div class="card data-section">
+                <h2>📊 システム情報</h2>
+                <div id="systemInfo">
+                    <p><strong>バックエンドサーバー:</strong> http://localhost:3000</p>
+                    <p><strong>API エンドポイント:</strong> http://localhost:3000/api</p>
+                    <p><strong>ヘルスチェック:</strong> http://localhost:3000/health</p>
+                </div>
+                <button class="btn btn-primary" onclick="getSystemStatus()">システム状態確認</button>
+            </div>
+        </div>
+        
+        <!-- 結果表示エリア -->
+        <div class="card">
+            <h2>📋 実行結果</h2>
+            <div id="result" class="result">
+ここに実行結果が表示されます。
+上記のボタンをクリックしてAPIをテストしてください。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${isError ? 'error' : 'success'}`;
+            resultDiv.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+        
+        async function apiCall(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(sessionId && { 'Authorization': `Bearer ${sessionId}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${data.error?.message || 'Unknown error'}`);
+                }
+                
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        async function login() {
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                const data = await apiCall('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (data.success) {
+                    sessionId = data.data.sessionId;
+                    showResult({
+                        message: 'ログイン成功！',
+                        user: data.data.user,
+                        sessionId: sessionId
+                    });
+                } else {
+                    throw new Error(data.error?.message || 'ログインに失敗しました');
+                }
+            } catch (error) {
+                showResult(`ログインエラー: ${error.message}`, true);
+            }
+        }
+        
+        async function logout() {
+            try {
+                const data = await apiCall('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                sessionId = null;
+                showResult('ログアウトしました');
+            } catch (error) {
+                showResult(`ログアウトエラー: ${error.message}`, true);
+            }
+        }
+        
+        async function checkSession() {
+            try {
+                const data = await apiCall('/api/auth/validate');
+                showResult({
+                    message: 'セッション有効',
+                    user: data.data.user,
+                    valid: data.data.valid
+                });
+            } catch (error) {
+                showResult(`セッション確認エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getCertifications() {
+            try {
+                const data = await apiCall('/api/certifications');
+                showResult({
+                    message: '資格一覧取得成功',
+                    count: data.data.certifications.length,
+                    certifications: data.data.certifications
+                });
+            } catch (error) {
+                showResult(`資格一覧取得エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getUsers() {
+            try {
+                const data = await apiCall('/api/users');
+                showResult({
+                    message: 'ユーザー一覧取得成功',
+                    count: data.data.users.length,
+                    users: data.data.users.map(u => ({
+                        id: u.id,
+                        name: u.name,
+                        email: u.email,
+                        role: u.role
+                    }))
+                });
+            } catch (error) {
+                showResult(`ユーザー一覧取得エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getMyPlans() {
+            try {
+                const data = await apiCall('/api/study-plans/my');
+                showResult({
+                    message: '学習計画取得成功',
+                    count: data.data.plans.length,
+                    plans: data.data.plans
+                });
+            } catch (error) {
+                showResult(`学習計画取得エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getMyAchievements() {
+            try {
+                const data = await apiCall('/api/achievements/my');
+                showResult({
+                    message: '取得履歴取得成功',
+                    count: data.data.achievements.length,
+                    achievements: data.data.achievements
+                });
+            } catch (error) {
+                showResult(`取得履歴取得エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getNotifications() {
+            try {
+                const data = await apiCall('/api/notifications');
+                showResult({
+                    message: '通知一覧取得成功',
+                    count: data.data.notifications.length,
+                    notifications: data.data.notifications
+                });
+            } catch (error) {
+                showResult(`通知一覧取得エラー: ${error.message}`, true);
+            }
+        }
+        
+        async function healthCheck() {
+            try {
+                const data = await apiCall('/health');
+                showResult({
+                    message: 'ヘルスチェック成功',
+                    ...data
+                });
+            } catch (error) {
+                showResult(`ヘルスチェックエラー: ${error.message}`, true);
+            }
+        }
+        
+        async function getSystemStatus() {
+            try {
+                const healthData = await apiCall('/health');
+                const certData = await apiCall('/api/certifications');
+                const userData = await apiCall('/api/users');
+                
+                showResult({
+                    message: 'システム状態確認成功',
+                    server: healthData,
+                    statistics: {
+                        totalCertifications: certData.data.certifications.length,
+                        totalUsers: userData.data.users.length,
+                        timestamp: new Date().toISOString()
+                    }
+                });
+            } catch (error) {
+                showResult(`システム状態確認エラー: ${error.message}`, true);
+            }
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            showResult('デモページが読み込まれました。\n上記のボタンをクリックしてAPIをテストしてください。');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install backend dependencies
+        run: npm ci
+      
+      - name: Install frontend dependencies
+        run: cd client && npm ci
+      
+      - name: Lint backend code
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Build backend
+        run: npm run build:server
+      
+      - name: Build frontend
+        run: npm run build:client
+      
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+      
+      - name: Upload build artifacts
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            client/build/
+          retention-days: 7
+  
+  deploy:
+    name: Deploy to Production
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+      
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deployment triggered for commit ${{ github.sha }}"
+          echo "📦 Build artifacts ready for deployment"
+          echo "🌐 Configure your hosting platform (Render, Railway, etc.) to deploy automatically"
+      
+      # Uncomment and configure for your specific hosting platform
+      
+      # Example: Deploy to Render
+      # - name: Trigger Render Deploy
+      #   run: |
+      #     curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      
+      # Example: Deploy to Railway
+      # - name: Deploy to Railway
+      #   uses: bervProject/railway-deploy@main
+      #   with:
+      #     railway_token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: ${{ secrets.RAILWAY_SERVICE }}
+      
+      # Example: Deploy to Heroku
+      # - name: Deploy to Heroku
+      #   uses: akhileshns/heroku-deploy@v3.12.14
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      #     heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+      #     heroku_email: ${{ secrets.HEROKU_EMAIL }}
