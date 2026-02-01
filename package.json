@@ -20,8 +20,7 @@
     "data:init": "ts-node src/data/init.ts",
     "data:backup": "ts-node src/data/backup.ts",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "postinstall": "npm run build:server"
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "keywords": [
     "certification",
